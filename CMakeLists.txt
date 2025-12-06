@@ -10,4 +10,6 @@ add_executable(dotFun cli/main.cpp
         lexer/lexer.cpp
         include/dotFun/ast/ast_base.h
         include/dotFun/ast/stmt.h
-        include/dotFun/ast/expr.h)
+        include/dotFun/ast/expr.h
+        ast/stmt.cpp
+        ast/expr.cpp)

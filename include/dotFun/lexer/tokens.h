@@ -64,6 +64,17 @@ namespace dotFun
         IS,
         IN,
 
+        // --- NOVOS TOKENS DE ERROR HANDLING ---
+        TRY,
+        CATCH,
+        FINALLY,
+        THROW,
+
+        // --- NOVOS TOKENS DE SWITCH CASE ---
+        TURN, // Keyword 'turn' (seu equivalente a 'switch')
+        CASE,
+        DEFAULT,
+
         // Symbols for operators
         PLUS,           // +
         MINUS,          // -
@@ -136,6 +147,18 @@ namespace dotFun
             case TokenType::NOT: return "NOT";
             case TokenType::IS: return "IS";
             case TokenType::IN: return "IN";
+
+            // --- NOVOS TOKENS DE ERROR HANDLING ---
+            case TokenType::TRY: return "TRY";
+            case TokenType::CATCH: return "CATCH";
+            case TokenType::FINALLY: return "FINALLY";
+            case TokenType::THROW: return "THROW";
+
+            // --- NOVOS TOKENS DE SWITCH CASE ---
+            case TokenType::TURN: return "TURN";
+            case TokenType::CASE: return "CASE";
+            case TokenType::DEFAULT: return "DEFAULT";
+
             case TokenType::PLUS: return "PLUS";
             case TokenType::MINUS: return "MINUS";
             case TokenType::STAR: return "STAR";
@@ -160,5 +183,4 @@ namespace dotFun
 
         return "UNKNOWN";
     };
-
 };

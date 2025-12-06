@@ -1,18 +1,80 @@
 #include "../include/dotFun/lexer/lexer.h"
 
-#include "../include/dotFun/lexer/token.h"
-
 #include <cctype>
 
-namespace dotfun
-{
-    Lexer::Lexer(const std::string& source)
-        : m_source(source)
+namespace dotfun {
+    bool Lexer::match(char expected)
     {
+        if (isAtEnd()) return false;
+        if (m_source[m_current] != expected) return false;
+
+        m_current++;
+        m_column++;
+        return true;
     }
 
-    std::vector<Token> Lexer::tokenize()
+    void Lexer::error(const std::string& message) {
+        std::cerr << "[Linha " << m_line << ", Coluna " << m_column << "] Erro de Lexer: " << message << std::endl;
+    }
+
+    void Lexer::handleDivisionOrComment()
     {
+        if (match('/'))
+        {
+            while (peek() != '\n' && !isAtEnd())
+                advance();
+        }
+        else if (match('*'))
+        {
+            while (!(peek() == '*' && peekNext() == '/') && !isAtEnd())
+            {
+                if (peek() == '\n') m_line++;
+                advance();
+            }
+
+            if (isAtEnd())
+            {
+                error("Unterminated block comment.");
+                return;
+            }
+
+            advance();
+            advance();
+        }
+        else
+        {
+            addToken(dotFun::TokenType::SLASH);
+        }
+    }
+
+    void Lexer::charLiteral()
+    {
+        if (peek() == '\\')
+        {
+            advance();
+            advance();
+        }
+        else if (!isAtEnd())
+        {
+            advance();
+        }
+
+        if (match('\''))
+        {
+            std::string text = m_source.substr(m_start + 1, m_current - m_start - 2);
+            addToken(dotFun::TokenType::CHAR_LITERAL, text);
+        }
+        else
+        {
+            error("Unterminated character literal. Expected closing single quote.");
+        }
+    }
+
+    Lexer::Lexer(const std::string& source)
+        : m_source(source) {
+    }
+
+    std::vector<Token> Lexer::tokenize() {
         m_tokens.clear();
         m_start = 0;
         m_current = 0;
@@ -29,13 +91,11 @@ namespace dotfun
         return m_tokens;
     }
 
-    bool Lexer::isAtEnd() const
-    {
+    bool Lexer::isAtEnd() const {
         return m_current >= m_source.size();
     }
 
-    char Lexer::advance()
-    {
+    char Lexer::advance() {
         char c = m_source[m_current++];
         if (c == '\n')
         {
@@ -49,31 +109,26 @@ namespace dotfun
         return c;
     }
 
-    void Lexer::addToken(dotFun::TokenType type)
-    {
+    void Lexer::addToken(dotFun::TokenType type) {
         addToken(type, "");
     }
 
-    void Lexer::addToken(dotFun::TokenType type, const std::string& literal)
-    {
+    void Lexer::addToken(dotFun::TokenType type, const std::string& literal) {
         std::string text = m_source.substr(m_start, m_current - m_start);
         m_tokens.emplace_back(type, text, literal, m_line, m_column);
     }
 
-    char Lexer::peek() const
-    {
+    char Lexer::peek() const {
         if (isAtEnd()) return '\0';
         return m_source[m_current];
     }
 
-    char Lexer::peekNext() const
-    {
+    char Lexer::peekNext() const {
         if (m_current + 1 >= m_source.size()) return '\0';
         return m_source[m_current + 1];
     }
 
-    void Lexer::scanToken()
-    {
+    void Lexer::scanToken() {
         skipWhitespace();
 
         if (isAtEnd()) return;
@@ -236,19 +291,8 @@ namespace dotfun
         }
     }
 
-    bool Lexer::match(char expected)
-    {
-        if (isAtEnd()) return false;
-        if (m_source[m_current] != expected) return false;
-
-        m_current++;
-        m_column++;
-        return true;
-    }
-
     std::optional<dotFun::TokenType> Lexer::keywordType(const std::string& text)
     {
-        // Map of keywords
         static const std::unordered_map<std::string, dotFun::TokenType> keywords = {
             {"class", dotFun::TokenType::CLASS},
             {"interface", dotFun::TokenType::INTERFACE},
@@ -275,7 +319,7 @@ namespace dotfun
             {"nil", dotFun::TokenType::NIL},
             {"number", dotFun::TokenType::NUMBER},
             {"string", dotFun::TokenType::STRING},
-            {"boolean", dotFun::TokenType::BOOLEAN},
+            {"bool", dotFun::TokenType::BOOLEAN},
             {"char", dotFun::TokenType::CHAR},
             {"let", dotFun::TokenType::LET},
             {"val", dotFun::TokenType::VAL},
@@ -284,7 +328,14 @@ namespace dotfun
             {"or", dotFun::TokenType::OR},
             {"not", dotFun::TokenType::NOT},
             {"is", dotFun::TokenType::IS},
-            {"in", dotFun::TokenType::IN}
+            {"in", dotFun::TokenType::IN},
+            {"try", dotFun::TokenType::TRY},
+            {"catch", dotFun::TokenType::CATCH},
+            {"finally", dotFun::TokenType::FINALLY},
+            {"throw", dotFun::TokenType::THROW},
+            {"turn", dotFun::TokenType::TURN},
+            {"case", dotFun::TokenType::CASE},
+            {"default", dotFun::TokenType::DEFAULT}
         };
 
         auto it = keywords.find(text);

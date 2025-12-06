@@ -9,7 +9,6 @@
 #include <vector>
 
 namespace dotfun {
-
     class Lexer {
       public:
         explicit Lexer(const std::string& source);
@@ -18,7 +17,6 @@ namespace dotfun {
       private:
         bool isAtEnd() const;
         char advance();
-        bool match(char expected);
 
         void addToken(dotFun::TokenType type);
         void addToken(dotFun::TokenType type, const std::string& literal);
@@ -29,10 +27,15 @@ namespace dotfun {
         void scanToken();
         void skipWhitespace();
         void stringLiteral();
+        void charLiteral();
         void numberLiteral();
         void identifier();
+        void handleDivisionOrComment();
 
         std::optional<dotFun::TokenType> keywordType(const std::string& text);
+
+        void error(const std::string& message);
+        bool match(char expected);
 
       private:
         std::string m_source;
