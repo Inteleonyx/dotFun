@@ -1,0 +1,296 @@
+#include "../include/dotFun/lexer/lexer.h"
+
+#include "../include/dotFun/lexer/token.h"
+
+#include <cctype>
+
+namespace dotfun
+{
+    Lexer::Lexer(const std::string& source)
+        : m_source(source)
+    {
+    }
+
+    std::vector<Token> Lexer::tokenize()
+    {
+        m_tokens.clear();
+        m_start = 0;
+        m_current = 0;
+        m_line = 1;
+        m_column = 1;
+
+        while (!isAtEnd())
+        {
+            m_start = m_current;
+            scanToken();
+        }
+
+        m_tokens.emplace_back(dotFun::TokenType::EOF_TOKEN, "", "", m_line, m_column);
+        return m_tokens;
+    }
+
+    bool Lexer::isAtEnd() const
+    {
+        return m_current >= m_source.size();
+    }
+
+    char Lexer::advance()
+    {
+        char c = m_source[m_current++];
+        if (c == '\n')
+        {
+            m_line++;
+            m_column = 1;
+        }
+        else
+        {
+            m_column++;
+        }
+        return c;
+    }
+
+    void Lexer::addToken(dotFun::TokenType type)
+    {
+        addToken(type, "");
+    }
+
+    void Lexer::addToken(dotFun::TokenType type, const std::string& literal)
+    {
+        std::string text = m_source.substr(m_start, m_current - m_start);
+        m_tokens.emplace_back(type, text, literal, m_line, m_column);
+    }
+
+    char Lexer::peek() const
+    {
+        if (isAtEnd()) return '\0';
+        return m_source[m_current];
+    }
+
+    char Lexer::peekNext() const
+    {
+        if (m_current + 1 >= m_source.size()) return '\0';
+        return m_source[m_current + 1];
+    }
+
+    void Lexer::scanToken()
+    {
+        skipWhitespace();
+
+        if (isAtEnd()) return;
+
+        char c = advance();
+
+        switch (c)
+        {
+            // Single-character tokens
+            case '(': addToken(dotFun::TokenType::LEFT_PAREN); break;
+            case ')': addToken(dotFun::TokenType::RIGHT_PAREN); break;
+            case '{': addToken(dotFun::TokenType::LEFT_BRACE); break;
+            case '}': addToken(dotFun::TokenType::RIGHT_BRACE); break;
+            case '[': addToken(dotFun::TokenType::LEFT_BRACKET); break;
+            case ']': addToken(dotFun::TokenType::RIGHT_BRACKET); break;
+            case ',': addToken(dotFun::TokenType::COMMA); break;
+            case '.': addToken(dotFun::TokenType::DOT); break;
+            case ';': addToken(dotFun::TokenType::SEMICOLON); break;
+            case '+': addToken(dotFun::TokenType::PLUS); break;
+            case '-': addToken(dotFun::TokenType::MINUS); break;
+            case '*': addToken(dotFun::TokenType::STAR); break;
+            case '%': addToken(dotFun::TokenType::PERCENT); break;
+
+            case '!':
+                addToken(match('=') ? dotFun::TokenType::NOT_BANG : dotFun::TokenType::NOT);
+                break;
+
+            case '=':
+                addToken(match('=') ? dotFun::TokenType::EQUAL_EQUAL : dotFun::TokenType::EQUAL);
+                break;
+
+            case '&':
+                if (match('&'))
+                    addToken(dotFun::TokenType::AND_AND);
+                else
+                    addToken(dotFun::TokenType::AND); // single '&' as AND? Up to your spec
+                break;
+
+            case '|':
+                if (match('|'))
+                    addToken(dotFun::TokenType::OR_OR);
+                else
+                    addToken(dotFun::TokenType::OR); // single '|' as OR? Up to your spec
+                break;
+
+            case ':':
+                addToken(dotFun::TokenType::COLON);
+                break;
+
+            case '"':
+                stringLiteral();
+                break;
+
+            default:
+                if (std::isdigit(c))
+                {
+                    numberLiteral();
+                }
+                else if (std::isalpha(c) || c == '_')
+                {
+                    identifier();
+                }
+                else
+                {
+                    // Unknown character, could report error here
+                }
+                break;
+        }
+    }
+
+    void Lexer::stringLiteral()
+    {
+        while (peek() != '"' && !isAtEnd())
+        {
+            if (peek() == '\n') m_line++;
+            advance();
+        }
+
+        if (isAtEnd())
+        {
+            // Unterminated string error (optional)
+            return;
+        }
+
+        advance(); // Consume closing "
+
+        std::string value = m_source.substr(m_start + 1, m_current - m_start - 2);
+        addToken(dotFun::TokenType::STRING_LITERAL, value);
+    }
+
+    void Lexer::numberLiteral()
+    {
+        while (std::isdigit(peek()))
+            advance();
+
+        // Look for fractional part
+        if (peek() == '.' && std::isdigit(peekNext()))
+        {
+            advance(); // consume '.'
+
+            while (std::isdigit(peek()))
+                advance();
+        }
+
+        std::string numStr = m_source.substr(m_start, m_current - m_start);
+        addToken(dotFun::TokenType::NUMBER_LITERAL, numStr);
+    }
+
+    void Lexer::identifier()
+    {
+        while (std::isalnum(peek()) || peek() == '_')
+            advance();
+
+        std::string text = m_source.substr(m_start, m_current - m_start);
+
+        auto typeOpt = keywordType(text);
+        if (typeOpt.has_value())
+        {
+            addToken(typeOpt.value());
+        }
+        else
+        {
+            addToken(dotFun::TokenType::IDENTIFIER);
+        }
+    }
+
+    void Lexer::skipWhitespace()
+    {
+        while (true)
+        {
+            char c = peek();
+            switch (c)
+            {
+                case ' ':
+                case '\r':
+                case '\t':
+                    advance();
+                    break;
+
+                case '\n':
+                    advance();
+                    break;
+
+                case '/':
+                    if (peekNext() == '/')
+                    {
+                        // Comment until end of line
+                        while (peek() != '\n' && !isAtEnd())
+                            advance();
+                    }
+                    else
+                    {
+                        return;
+                    }
+                    break;
+
+                default:
+                    return;
+            }
+        }
+    }
+
+    bool Lexer::match(char expected)
+    {
+        if (isAtEnd()) return false;
+        if (m_source[m_current] != expected) return false;
+
+        m_current++;
+        m_column++;
+        return true;
+    }
+
+    std::optional<dotFun::TokenType> Lexer::keywordType(const std::string& text)
+    {
+        // Map of keywords
+        static const std::unordered_map<std::string, dotFun::TokenType> keywords = {
+            {"class", dotFun::TokenType::CLASS},
+            {"interface", dotFun::TokenType::INTERFACE},
+            {"extends", dotFun::TokenType::EXTENDS},
+            {"import", dotFun::TokenType::IMPORT},
+            {"export", dotFun::TokenType::EXPORT},
+            {"enum", dotFun::TokenType::ENUM},
+            {"struct", dotFun::TokenType::STRUCT},
+            {"public", dotFun::TokenType::PUBLIC},
+            {"protected", dotFun::TokenType::PROTECTED},
+            {"private", dotFun::TokenType::PRIVATE},
+            {"if", dotFun::TokenType::IF},
+            {"else", dotFun::TokenType::ELSE},
+            {"elif", dotFun::TokenType::ELIF},
+            {"while", dotFun::TokenType::WHILE},
+            {"for", dotFun::TokenType::FOR},
+            {"break", dotFun::TokenType::BREAK},
+            {"continue", dotFun::TokenType::CONTINUE},
+            {"async", dotFun::TokenType::ASYNC},
+            {"fun", dotFun::TokenType::FUN},
+            {"return", dotFun::TokenType::RETURN},
+            {"true", dotFun::TokenType::TRUE},
+            {"false", dotFun::TokenType::FALSE},
+            {"nil", dotFun::TokenType::NIL},
+            {"number", dotFun::TokenType::NUMBER},
+            {"string", dotFun::TokenType::STRING},
+            {"boolean", dotFun::TokenType::BOOLEAN},
+            {"char", dotFun::TokenType::CHAR},
+            {"let", dotFun::TokenType::LET},
+            {"val", dotFun::TokenType::VAL},
+            {"global", dotFun::TokenType::GLOBAL},
+            {"and", dotFun::TokenType::AND},
+            {"or", dotFun::TokenType::OR},
+            {"not", dotFun::TokenType::NOT},
+            {"is", dotFun::TokenType::IS},
+            {"in", dotFun::TokenType::IN}
+        };
+
+        auto it = keywords.find(text);
+        if (it != keywords.end())
+            return it->second;
+
+        return std::nullopt;
+    }
+}
