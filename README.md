@@ -33,9 +33,9 @@ The language is designed with a clean architecture consisting of a lexer, parser
 
 ## 📈 Goals
 
-DotFun aims to be both a practical tool for developers and an interesting platform for language design exploration. It focuses on making code enjoyable to write and easy to understand, empowering developers to express ideas directly and effectively.
+dotFun aims to be both a practical tool for developers and an interesting platform for language design exploration. It focuses on making code enjoyable to write and easy to understand, empowering developers to express ideas directly and effectively.
 
 ---
 
-Feel free to explore, contribute, and help shape DotFun into a language that blends power with simplicity.
+Feel free to explore, contribute, and help shape dotFun into a language that blends power with simplicity.
 
