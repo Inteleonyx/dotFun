@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace dotfun
+namespace dotFun
 {
     struct Token
     {

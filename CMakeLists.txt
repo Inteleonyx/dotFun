@@ -12,4 +12,12 @@ add_executable(dotFun cli/main.cpp
         include/dotFun/ast/stmt.h
         include/dotFun/ast/expr.h
         ast/stmt.cpp
-        ast/expr.cpp)
+        ast/expr.cpp
+        include/dotFun/parser/parser.h
+        parser/parser.cpp
+        include/dotFun/interpreter/interpreter.h
+        include/dotFun/interpreter/environment.h
+        include/dotFun/interpreter/value.h
+        interpreter/value.cpp
+        interpreter/environment.cpp
+        interpreter/interpreter.cpp.old)

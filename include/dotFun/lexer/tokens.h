@@ -26,6 +26,9 @@ namespace dotFun
         PUBLIC,
         PROTECTED,
         PRIVATE,
+        OVERRIDE,
+        THIS,
+        NEW,
 
         // Control Flow
         IF,
@@ -38,6 +41,7 @@ namespace dotFun
 
         // Functions
         ASYNC,
+        AWAIT,
         FUN,
         RETURN,
 
@@ -86,6 +90,12 @@ namespace dotFun
         NOT_BANG,       // !
         EQUAL_EQUAL,    // ==
         COLON,          // :
+        GREATER,        // >
+        LESS,           // <
+        GREATER_EQUAL,  // >=
+        LESS_EQUAL,     // <=
+        MINUS_MINUS,    // --
+        PLUS_PLUS,      // ++
 
         // Assignment
         EQUAL,          // =
@@ -179,6 +189,16 @@ namespace dotFun
             case TokenType::COMMA: return "COMMA";
             case TokenType::DOT: return "DOT";
             case TokenType::SEMICOLON: return "SEMICOLON";
+            case TokenType::OVERRIDE: return "OVERRIDE";
+            case TokenType::AWAIT: return "AWAIT";
+            case TokenType::LESS: return "LESS";
+            case TokenType::GREATER: return "GREATER";
+            case TokenType::GREATER_EQUAL: return "GREATER_EQUAL";
+            case TokenType::LESS_EQUAL: return "LESS_EQUAL";
+            case TokenType::THIS: return "THIS";
+            case TokenType::PLUS_PLUS: return "PLUS_PLUS";
+            case TokenType::MINUS_MINUS: return "MINUS_MINUS";
+            case TokenType::NEW: return "NEW";
         }
 
         return "UNKNOWN";

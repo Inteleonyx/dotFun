@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-namespace dotfun {
+namespace dotFun {
     struct Expr;
 
     struct Literal : Expr {
@@ -82,6 +82,31 @@ namespace dotfun {
         void accept(ExprVisitor& visitor) override;
     };
 
+    struct This : Expr {
+        Token keyword;
+
+        This(Token keyword);
+
+        void accept(ExprVisitor& visitor) override;
+    };
+
+    struct PostfixUnary : Expr {
+        std::unique_ptr<Expr> operand;
+        Token op;
+
+        PostfixUnary(std::unique_ptr<Expr> operand, Token op);
+
+        void accept(ExprVisitor& visitor) override;
+    };
+
+    struct New : Expr {
+        Token className;
+        std::vector<std::unique_ptr<Expr>> arguments;
+
+        New(Token className, std::vector<std::unique_ptr<Expr>> arguments);
+
+        void accept(ExprVisitor& visitor) override;
+    };
 }
 
 #endif

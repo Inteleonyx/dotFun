@@ -9,7 +9,7 @@
 #include <vector>
 #include <optional>
 
-namespace dotfun {
+namespace dotFun {
     enum class AccessModifier {
         Public,
         Protected,
@@ -111,12 +111,14 @@ namespace dotfun {
 
     struct Function : Stmt {
         std::string name;
+        bool isOverride;
         bool isAsync;
         std::vector<std::pair<std::string, std::optional<std::string>>> params;
         std::optional<std::string> returnType;
         std::vector<std::unique_ptr<Stmt>> body;
 
         Function(std::string name,
+                 bool isOverride,
                  bool isAsync,
                  std::vector<std::pair<std::string, std::optional<std::string>>> params,
                  std::optional<std::string> returnType,
@@ -198,6 +200,19 @@ namespace dotfun {
         explicit Throw(std::unique_ptr<Expr> exception);
         void accept(StmtVisitor& visitor) override;
     };
+
+    class Block : public Stmt {
+      public:
+        Block(std::vector<std::unique_ptr<Stmt>> statements);
+
+        void accept(StmtVisitor& visitor) override;
+
+        const std::vector<std::unique_ptr<Stmt>>& getStatements() const { return statements; }
+
+      private:
+        std::vector<std::unique_ptr<Stmt>> statements;
+    };
+
 
 }
 

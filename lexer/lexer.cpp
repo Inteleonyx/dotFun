@@ -2,7 +2,7 @@
 
 #include <cctype>
 
-namespace dotfun {
+namespace dotFun {
     bool Lexer::match(char expected)
     {
         if (isAtEnd()) return false;
@@ -14,37 +14,7 @@ namespace dotfun {
     }
 
     void Lexer::error(const std::string& message) {
-        std::cerr << "[Linha " << m_line << ", Coluna " << m_column << "] Erro de Lexer: " << message << std::endl;
-    }
-
-    void Lexer::handleDivisionOrComment()
-    {
-        if (match('/'))
-        {
-            while (peek() != '\n' && !isAtEnd())
-                advance();
-        }
-        else if (match('*'))
-        {
-            while (!(peek() == '*' && peekNext() == '/') && !isAtEnd())
-            {
-                if (peek() == '\n') m_line++;
-                advance();
-            }
-
-            if (isAtEnd())
-            {
-                error("Unterminated block comment.");
-                return;
-            }
-
-            advance();
-            advance();
-        }
-        else
-        {
-            addToken(dotFun::TokenType::SLASH);
-        }
+        std::cerr << "[Line " << m_line << ", Column " << m_column << "] Lexer error: " << message << std::endl;
     }
 
     void Lexer::charLiteral()
@@ -74,7 +44,7 @@ namespace dotfun {
         : m_source(source) {
     }
 
-    std::vector<Token> Lexer::tokenize() {
+    std::vector<dotFun::Token> Lexer::tokenize() {
         m_tokens.clear();
         m_start = 0;
         m_current = 0;
@@ -147,8 +117,6 @@ namespace dotfun {
             case ',': addToken(dotFun::TokenType::COMMA); break;
             case '.': addToken(dotFun::TokenType::DOT); break;
             case ';': addToken(dotFun::TokenType::SEMICOLON); break;
-            case '+': addToken(dotFun::TokenType::PLUS); break;
-            case '-': addToken(dotFun::TokenType::MINUS); break;
             case '*': addToken(dotFun::TokenType::STAR); break;
             case '%': addToken(dotFun::TokenType::PERCENT); break;
 
@@ -182,6 +150,51 @@ namespace dotfun {
                 stringLiteral();
                 break;
 
+            case '+':
+                addToken(match('+') ? dotFun::TokenType::PLUS_PLUS : dotFun::TokenType::PLUS);
+                break;
+
+            case '-':
+                addToken(match('-') ? dotFun::TokenType::MINUS_MINUS : dotFun::TokenType::MINUS);
+                break;
+
+            case '>':
+                addToken(match('=') ? dotFun::TokenType::GREATER_EQUAL : dotFun::TokenType::GREATER);
+                break;
+
+            case '<':
+                addToken(match('=') ? dotFun::TokenType::LESS_EQUAL : dotFun::TokenType::LESS);
+                break;
+            case '/':
+                if (match('/'))
+                {
+                    while (peek() != '\n' && !isAtEnd())
+                        advance();
+                }
+                else if (match('*'))
+                {
+                    while (!(peek() == '*' && peekNext() == '/') && !isAtEnd())
+                    {
+                        if (peek() == '\n') m_line++;
+                        advance();
+                    }
+
+                    if (isAtEnd())
+                    {
+                        error("Unterminated block comment.");
+                    }
+                    else
+                    {
+                        advance();
+                        advance();
+                    }
+                }
+                else
+                {
+                    addToken(dotFun::TokenType::SLASH);
+                }
+                break;
+
             default:
                 if (std::isdigit(c))
                 {
@@ -193,7 +206,6 @@ namespace dotfun {
                 }
                 else
                 {
-                    // Unknown character, could report error here
                 }
                 break;
         }
@@ -209,11 +221,10 @@ namespace dotfun {
 
         if (isAtEnd())
         {
-            // Unterminated string error (optional)
             return;
         }
 
-        advance(); // Consume closing "
+        advance();
 
         std::string value = m_source.substr(m_start + 1, m_current - m_start - 2);
         addToken(dotFun::TokenType::STRING_LITERAL, value);
@@ -271,20 +282,6 @@ namespace dotfun {
                 case '\n':
                     advance();
                     break;
-
-                case '/':
-                    if (peekNext() == '/')
-                    {
-                        // Comment until end of line
-                        while (peek() != '\n' && !isAtEnd())
-                            advance();
-                    }
-                    else
-                    {
-                        return;
-                    }
-                    break;
-
                 default:
                     return;
             }
@@ -335,7 +332,11 @@ namespace dotfun {
             {"throw", dotFun::TokenType::THROW},
             {"turn", dotFun::TokenType::TURN},
             {"case", dotFun::TokenType::CASE},
-            {"default", dotFun::TokenType::DEFAULT}
+            {"default", dotFun::TokenType::DEFAULT},
+            {"override", dotFun::TokenType::OVERRIDE},
+            {"this", dotFun::TokenType::THIS},
+            {"await", dotFun::TokenType::AWAIT},
+            {"new", dotFun::TokenType::NEW}
         };
 
         auto it = keywords.find(text);

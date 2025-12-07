@@ -2,9 +2,7 @@
 
 #include <optional>
 
-namespace dotfun {
-
-    // Let
+namespace dotFun {
     Let::Let(std::string name, std::optional<std::string> type, std::unique_ptr<Expr> initializer)
         : name(std::move(name)), type(std::move(type)), initializer(std::move(initializer)) {}
 
@@ -12,7 +10,6 @@ namespace dotfun {
         visitor.visitLet(*this);
     }
 
-    // Val
     Val::Val(std::string name, std::optional<std::string> type, std::unique_ptr<Expr> initializer)
         : name(std::move(name)), type(std::move(type)), initializer(std::move(initializer)) {}
 
@@ -20,7 +17,6 @@ namespace dotfun {
         visitor.visitVal(*this);
     }
 
-    // Global
     Global::Global(std::string name, std::optional<std::string> type, std::unique_ptr<Expr> initializer)
         : name(std::move(name)), type(std::move(type)), initializer(std::move(initializer)) {}
 
@@ -28,7 +24,6 @@ namespace dotfun {
         visitor.visitGlobal(*this);
     }
 
-    // Expression
     Expression::Expression(std::unique_ptr<Expr> expression)
         : expression(std::move(expression)) {}
 
@@ -36,7 +31,6 @@ namespace dotfun {
         visitor.visitExpression(*this);
     }
 
-    // If
     If::If(std::unique_ptr<Expr> condition,
            std::unique_ptr<Stmt> thenBranch,
            std::unique_ptr<Stmt> elseBranch)
@@ -46,7 +40,6 @@ namespace dotfun {
         visitor.visitIf(*this);
     }
 
-    // While
     While::While(std::unique_ptr<Expr> condition, std::unique_ptr<Stmt> body)
         : condition(std::move(condition)), body(std::move(body)) {}
 
@@ -54,7 +47,6 @@ namespace dotfun {
         visitor.visitWhile(*this);
     }
 
-    // For
     For::For(std::unique_ptr<Stmt> initializer,
              std::unique_ptr<Expr> condition,
              std::unique_ptr<Expr> increment,
@@ -68,23 +60,22 @@ namespace dotfun {
         visitor.visitFor(*this);
     }
 
-    // Break
     void Break::accept(StmtVisitor& visitor) {
         visitor.visitBreak(*this);
     }
 
-    // Continue
     void Continue::accept(StmtVisitor& visitor) {
         visitor.visitContinue(*this);
     }
 
-    // Function
     Function::Function(std::string name,
                        bool isAsync,
+                       bool isOverride,
                        std::vector<std::pair<std::string, std::optional<std::string>>> params,
                        std::optional<std::string> returnType,
                        std::vector<std::unique_ptr<Stmt>> body)
         : name(std::move(name)),
+          isOverride(isOverride),
           isAsync(isAsync),
           params(std::move(params)),
           returnType(std::move(returnType)),
@@ -94,7 +85,6 @@ namespace dotfun {
         visitor.visitFunction(*this);
     }
 
-    // Return
     Return::Return(std::unique_ptr<Expr> value)
         : value(std::move(value)) {}
 
@@ -102,7 +92,6 @@ namespace dotfun {
         visitor.visitReturn(*this);
     }
 
-    // Class
     Class::Class(std::string name,
                  std::optional<std::string> superClass,
                  AccessModifier accessModifier,
@@ -116,7 +105,6 @@ namespace dotfun {
         visitor.visitClass(*this);
     }
 
-    // Interface
     Interface::Interface(std::string name,
                          std::vector<std::string> superInterfaces,
                          AccessModifier accessModifier,
@@ -199,6 +187,13 @@ namespace dotfun {
 
     void Throw::accept(StmtVisitor& visitor) {
         visitor.visitThrow(*this);
+    }
+
+    Block::Block(std::vector<std::unique_ptr<Stmt>> statements)
+        : statements(std::move(statements)) {}
+
+    void Block::accept(StmtVisitor& visitor) {
+        visitor.visitBlock(*this);
     }
 
 }

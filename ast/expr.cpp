@@ -1,6 +1,7 @@
 #include "../include/dotFun/ast/expr.h"
+#include "../include/dotFun/interpreter/value.h"
 
-namespace dotfun {
+namespace dotFun {
 
     Literal::Literal(double value)
         : type(Type::Number), numberValue(value), stringValue(""), boolValue(false) {}
@@ -46,4 +47,45 @@ namespace dotfun {
         visitor.visitCall(*this);
     }
 
+    Grouping::Grouping(std::unique_ptr<Expr> expression)
+        : expression(std::move(expression)) {}
+
+    void Grouping::accept(ExprVisitor& visitor) {
+        visitor.visitGrouping(*this);
+    }
+
+    Assign::Assign(Token name, std::unique_ptr<Expr> value)
+        : name(name), value(std::move(value)) {}
+
+    void Assign::accept(ExprVisitor& visitor) {
+        visitor.visitAssign(*this);
+    }
+
+    Logical::Logical(std::unique_ptr<Expr> left, Token op, std::unique_ptr<Expr> right)
+        : left(std::move(left)), op(op), right(std::move(right)) {}
+
+    void Logical::accept(ExprVisitor& visitor) {
+        visitor.visitLogical(*this);
+    }
+
+    This::This(Token keyword)
+        : keyword(keyword) {}
+
+    void This::accept(ExprVisitor& visitor) {
+        visitor.visitThis(*this);
+    }
+
+    PostfixUnary::PostfixUnary(std::unique_ptr<dotFun::Expr> operand, dotFun::Token op)
+        : operand(std::move(operand)), op(op) {}
+
+    void PostfixUnary::accept(dotFun::ExprVisitor& visitor) {
+        visitor.visitPostfixUnary(*this);
+    }
+
+    New::New(Token className, std::vector<std::unique_ptr<Expr>> arguments)
+        : className(std::move(className)), arguments(std::move(arguments)) {}
+
+    void New::accept(ExprVisitor& visitor) {
+        visitor.visitNew(*this);
+    }
 }

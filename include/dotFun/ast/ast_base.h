@@ -1,20 +1,24 @@
 #ifndef DOTFUN_AST_BASE_H
 #define DOTFUN_AST_BASE_H
 
-namespace dotfun {
+namespace dotFun {
     struct Expr;
     struct Stmt;
+    class Value;
 
     struct ExprVisitor {
-        virtual void visitBinary(class Binary& expr) = 0;
-        virtual void visitLiteral(class Literal& expr) = 0;
-        virtual void visitVariable(class Variable& expr) = 0;
-        virtual void visitUnary(class Unary& expr) = 0;
-        virtual void visitCall(class Call& expr) = 0;
+        virtual dotFun::Value visitBinary(class Binary& expr) = 0;
+        virtual dotFun::Value visitLiteral(class Literal& expr) = 0;
+        virtual dotFun::Value visitVariable(class Variable& expr) = 0;
+        virtual dotFun::Value visitUnary(class Unary& expr) = 0;
+        virtual dotFun::Value visitCall(class Call& expr) = 0;
 
-        virtual void visitAssign(class Assign& expr) = 0;
-        virtual void visitLogical(class Logical& expr) = 0;
-        virtual void visitGrouping(class Grouping& expr) = 0;
+        virtual dotFun::Value visitAssign(class Assign& expr) = 0;
+        virtual dotFun::Value visitLogical(class Logical& expr) = 0;
+        virtual dotFun::Value visitGrouping(class Grouping& expr) = 0;
+        virtual dotFun::Value visitThis(class This& expr) = 0;
+        virtual dotFun::Value visitPostfixUnary(class PostfixUnary& expr) = 0;
+        virtual dotFun::Value visitNew(class New& expr) = 0;
 
         virtual ~ExprVisitor() = default;
     };
@@ -45,6 +49,8 @@ namespace dotfun {
         virtual void visitDefault(class Default& stmt) = 0;
         virtual void visitTry(class Try& stmt) = 0;
         virtual void visitThrow(class Throw& stmt) = 0;
+
+        virtual void visitBlock(class Block& stmt) = 0;
 
         virtual ~StmtVisitor() = default;
     };

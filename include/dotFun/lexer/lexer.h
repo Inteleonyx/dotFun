@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace dotfun {
+namespace dotFun {
     class Lexer {
       public:
         explicit Lexer(const std::string& source);
@@ -30,7 +30,6 @@ namespace dotfun {
         void charLiteral();
         void numberLiteral();
         void identifier();
-        void handleDivisionOrComment();
 
         std::optional<dotFun::TokenType> keywordType(const std::string& text);
 
